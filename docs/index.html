@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1200">
+  <title>C-Subset Compiler — Spring 2026</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/monokai.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --accent: #4f46e5;
+      --accent-soft: #eef2ff;
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: #e2e8f0;
+      --code-bg: #0f172a;
+      --good: #16a34a;
+      --bad: #dc2626;
+      --warn: #d97706;
+    }
+    .reveal { font-family: 'Inter', system-ui, sans-serif; color: var(--ink); }
+    .reveal .slides { text-align: left; }
+    .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+      font-family: 'Inter', sans-serif; font-weight: 700; color: var(--ink);
+      text-transform: none; letter-spacing: -0.02em; line-height: 1.15;
+    }
+    .reveal h1 { font-size: 2.4em; }
+    .reveal h2 { font-size: 1.7em; margin-bottom: 0.5em; }
+    .reveal h3 { font-size: 1.15em; color: var(--accent); margin-bottom: 0.4em; }
+    .reveal p, .reveal li { color: var(--ink); font-size: 0.7em; line-height: 1.5; }
+    .reveal small { color: var(--muted); font-size: 0.55em; }
+    .reveal code { font-family: 'JetBrains Mono', monospace; }
+    .reveal pre { box-shadow: none; font-size: 0.42em; line-height: 1.45; }
+    .reveal pre code {
+      border-radius: 8px; padding: 1em 1.2em; background: var(--code-bg);
+      max-height: 480px;
+    }
+    .reveal section img { border: 0; box-shadow: none; }
+    .reveal a { color: var(--accent); }
+
+    .tag {
+      display: inline-block; padding: 0.18em 0.7em; border-radius: 999px;
+      background: var(--accent-soft); color: var(--accent);
+      font-size: 0.5em; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .lede { color: var(--muted); font-size: 0.8em; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5em; align-items: start; }
+    .grid-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1em; }
+    .card {
+      border: 1px solid var(--line); border-radius: 10px; padding: 1em 1.2em; background: white;
+    }
+    .card h4 {
+      margin: 0 0 0.4em 0; font-size: 0.7em; color: var(--accent); text-transform: uppercase;
+      letter-spacing: 0.06em; font-weight: 700;
+    }
+    .card p, .card li { font-size: 0.6em; margin: 0.15em 0; }
+    .card code { font-size: 0.85em; color: var(--ink); background: var(--accent-soft);
+                 padding: 0.05em 0.35em; border-radius: 4px; }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 0.4em; }
+    .pill {
+      display: inline-block; padding: 0.25em 0.7em; border-radius: 6px;
+      background: var(--accent-soft); color: var(--accent); font-family: 'JetBrains Mono', monospace;
+      font-size: 0.55em; font-weight: 500;
+    }
+
+    .title-slide { text-align: center; }
+    .title-slide h1 {
+      font-size: 3em; background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      margin-bottom: 0.2em;
+    }
+    .title-slide .lede { font-size: 1em; }
+
+    .meta-row { display: flex; gap: 2em; justify-content: center; margin-top: 1.5em; color: var(--muted); font-size: 0.6em;}
+    .meta-row b { color: var(--ink); }
+
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1em; margin: 1em 0; }
+    .stat {
+      border: 1px solid var(--line); border-radius: 10px; padding: 0.8em 1em; background: white;
+    }
+    .stat .num { font-size: 1.6em; font-weight: 700; color: var(--accent); display: block; line-height: 1; }
+    .stat .lbl { font-size: 0.55em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+
+    .checks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5em; margin: 0.8em 0; }
+    .check {
+      display: flex; align-items: center; gap: 0.5em; padding: 0.45em 0.7em;
+      border-radius: 8px; background: #ecfdf5; color: #065f46; font-size: 0.55em; font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .check::before { content: "✓"; font-weight: 700; }
+
+    .legend { display: flex; gap: 1em; font-size: 0.55em; color: var(--muted); margin-top: 0.5em; }
+    .legend span::before { content: "■ "; }
+
+    /* pipeline */
+    .pipeline { display: flex; align-items: center; justify-content: space-between;
+      gap: 0.5em; margin: 1em 0; flex-wrap: wrap; }
+    .pipe-box {
+      flex: 1; min-width: 130px; padding: 0.8em 0.6em; border-radius: 10px; border: 1px solid var(--line);
+      background: white; text-align: center;
+    }
+    .pipe-box .ph { font-size: 0.55em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .pipe-box .nm { font-size: 0.75em; font-weight: 700; color: var(--ink); margin: 0.1em 0; }
+    .pipe-box .out { font-size: 0.55em; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .pipe-arrow { color: var(--muted); font-size: 1.2em; }
+    .pipe-box.opt { border-style: dashed; border-color: var(--accent); background: var(--accent-soft); }
+
+    .ascii-tree {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.55em; line-height: 1.45;
+      background: #f8fafc; border: 1px solid var(--line); border-radius: 8px;
+      padding: 0.8em 1em; color: var(--ink); white-space: pre;
+    }
+
+    .src-out { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
+    .src-out h4 { margin: 0 0 0.3em 0; font-size: 0.6em; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.06em; }
+    .reveal .src-out pre code { max-height: 380px; }
+
+    .footer-link { position: fixed; bottom: 12px; right: 18px; font-size: 11px; color: var(--muted); z-index: 9; }
+    .footer-link a { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+
+    .reveal .progress { color: var(--accent); }
+    .reveal .controls { color: var(--accent); }
+  </style>
+</head>
+<body>
+<div class="footer-link">github.com/okHadi/compiler-construction</div>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1. TITLE -->
+    <section class="title-slide">
+      <span class="tag">Compiler Construction · Spring 2026</span>
+      <h1>A C-Subset Compiler</h1>
+      <p class="lede">Lexical analysis · Parsing · Semantic analysis · Three-address code</p>
+      <div class="meta-row">
+        <div><b>Language</b><br>Python 3.10+</div>
+        <div><b>Target</b><br>Three-address IR</div>
+        <div><b>Tests</b><br>11 / 11 passing</div>
+      </div>
+      <aside class="notes">
+        Open with what we built: a working compiler for a defined subset of C, written in pure Python with no third-party dependencies.
+        Today we walk through the four required phases plus two innovations (arrays and a small optimizer), and end with a live demo.
+      </aside>
+    </section>
+
+    <!-- 2. WHAT IS A COMPILER -->
+    <section>
+      <span class="tag">Context</span>
+      <h2>What does a compiler actually do?</h2>
+      <p class="lede">It turns source code that humans write into a structured form a machine can act on. We do this in four well-defined phases.</p>
+      <div class="pipeline">
+        <div class="pipe-box"><div class="ph">Phase 1</div><div class="nm">Lexer</div><div class="out">→ tokens</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box"><div class="ph">Phase 2</div><div class="nm">Parser</div><div class="out">→ AST</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box"><div class="ph">Phase 3</div><div class="nm">Semantic</div><div class="out">→ checked AST</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box"><div class="ph">Phase 4</div><div class="nm">IR Gen</div><div class="out">→ TAC</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-box opt"><div class="ph">Optional</div><div class="nm">Optimizer</div><div class="out">→ better TAC</div></div>
+      </div>
+      <p class="lede" style="margin-top: 1em;">Each phase consumes the output of the previous one. If any phase rejects the input, the pipeline stops and reports a clear error.</p>
+      <aside class="notes">
+        Explain the pipeline in plain words: characters become tokens, tokens become a tree, the tree is checked for meaning, then it's lowered to a simpler instruction-like form (TAC).
+        The optimizer is optional and toggleable with --no-opt.
+      </aside>
+    </section>
+
+    <!-- 3. PROJECT GOAL -->
+    <section>
+      <span class="tag">Objective</span>
+      <h2>What the spec asks for</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Required</h4>
+          <ul>
+            <li>Variables &amp; expressions (arithmetic, relational, logical)</li>
+            <li>Control structures: <code>if</code>, <code>while</code>, <code>for</code></li>
+            <li>Functions including <code>main</code> and user-defined</li>
+            <li>Symbol table with global &amp; local scope</li>
+            <li>Lexer, parser, semantic analyzer, IR (e.g. TAC)</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color: var(--accent);">
+          <h4>Innovation (2 marks)</h4>
+          <ul>
+            <li><b>Arrays</b> — declaration, indexed read &amp; write</li>
+            <li><b>Constant folding</b> — evaluate constants at compile time</li>
+            <li><b>Dead code elimination</b> — drop unreachable instructions</li>
+          </ul>
+        </div>
+      </div>
+      <p class="lede" style="margin-top: 1em;">Everything required is implemented. We chose two low-risk innovations that demo well and add real depth.</p>
+      <aside class="notes">
+        Read the required list directly from the project PDF. Then explain that arrays + optimizer were chosen because they are easy to demonstrate visually and don't risk the deadline.
+      </aside>
+    </section>
+
+    <!-- 4. C SUBSET -->
+    <section>
+      <span class="tag">Language</span>
+      <h2>The C subset we support</h2>
+      <div class="grid-4">
+        <div class="card">
+          <h4>Types</h4>
+          <div class="pill-row">
+            <span class="pill">int</span><span class="pill">float</span><span class="pill">char</span><span class="pill">void</span>
+          </div>
+          <p style="margin-top: 0.5em;">Safe widening (<code>int → float</code>) allowed; narrowing rejected.</p>
+        </div>
+        <div class="card">
+          <h4>Operators</h4>
+          <div class="pill-row">
+            <span class="pill">+ - * / %</span><span class="pill">&lt; &gt; &lt;= &gt;= == !=</span><span class="pill">&amp;&amp; || !</span>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Control flow</h4>
+          <div class="pill-row">
+            <span class="pill">if / else</span><span class="pill">while</span><span class="pill">for</span><span class="pill">return</span>
+          </div>
+        </div>
+        <div class="card">
+          <h4>Functions &amp; data</h4>
+          <div class="pill-row">
+            <span class="pill">main + user-defined</span><span class="pill">recursion</span><span class="pill">arrays a[N]</span><span class="pill">print() / read()</span>
+          </div>
+        </div>
+      </div>
+      <aside class="notes">
+        Walk the four cards quickly. Mention the I/O built-ins print and read so audience knows test programs are runnable end to end.
+      </aside>
+    </section>
+
+    <!-- 5. ARCHITECTURE -->
+    <section>
+      <span class="tag">Architecture</span>
+      <h2>How the project is laid out</h2>
+      <div class="grid-2">
+        <div>
+          <pre class="ascii-tree">compiler-construction/
+├── main.py                CLI entry point
+├── compiler/
+│   ├── lexer.py           tokenizer
+│   ├── parser.py          recursive descent + Pratt
+│   ├── ast_nodes.py       AST dataclasses
+│   ├── symbol_table.py    scoped symbol table
+│   ├── semantic.py        type &amp; scope checking
+│   ├── tac.py             three-address IR
+│   └── optimizer.py       folding + DCE
+├── tests/
+│   ├── programs/          sample .c programs
+│   ├── expected/          golden TAC outputs
+│   └── run_tests.py       test harness
+├── README.md              how to run
+└── REPORT.md              project report</pre>
+        </div>
+        <div>
+          <h3>Design choices</h3>
+          <ul>
+            <li><b>One module per phase.</b> Easy to reason about and to grade.</li>
+            <li><b>Pure stdlib.</b> No third-party packages, runs anywhere with Python 3.10+.</li>
+            <li><b>Hand-written lexer &amp; parser.</b> No yacc / PLY — every line is ours and explainable.</li>
+            <li><b>Dataclass AST.</b> Fewer keystrokes, free <code>__repr__</code>, easy to traverse.</li>
+            <li><b>Golden-file tests.</b> Compile each program, diff the TAC. Catches regressions instantly.</li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">
+        Show the file tree and emphasise modularity — one module per phase. Mention the test harness runs every sample and diffs against expected output.
+      </aside>
+    </section>
+
+    <!-- 6. PHASE 1 LEXER -->
+    <section>
+      <span class="tag">Phase 1 · Lexer</span>
+      <h2>Source → Tokens</h2>
+      <div class="src-out">
+        <div>
+          <h4>Source</h4>
+          <pre><code class="language-c">int x = 3 + 4;</code></pre>
+          <h3 style="margin-top: 0.6em;">What it does</h3>
+          <ul>
+            <li>Reads the source character by character</li>
+            <li>Tracks <code>(line, col)</code> on every token</li>
+            <li>Skips whitespace and <code>// or /* */</code> comments</li>
+            <li>Recognises keywords, identifiers, literals, operators</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Token stream</h4>
+<pre><code class="language-text">INT      'int'      line 1 col 1
+IDENT    'x'        line 1 col 5
+ASSIGN   '='        line 1 col 7
+INT_LIT  3          line 1 col 9
+PLUS     '+'        line 1 col 11
+INT_LIT  4          line 1 col 13
+SEMI     ';'        line 1 col 14
+EOF</code></pre>
+        </div>
+      </div>
+      <aside class="notes">
+        Emphasise that the lexer is hand-written. The line/column tracking is what makes downstream errors useful.
+      </aside>
+    </section>
+
+    <!-- 7. PHASE 2 PARSER -->
+    <section>
+      <span class="tag">Phase 2 · Parser</span>
+      <h2>Tokens → Abstract Syntax Tree</h2>
+      <div class="src-out">
+        <div>
+          <h4>Source</h4>
+          <pre><code class="language-c">int x = 3 + 4 * 2;</code></pre>
+          <h3 style="margin-top: 0.6em;">How precedence works</h3>
+          <ul>
+            <li>Statements use <b>recursive descent</b> — one function per construct</li>
+            <li>Expressions use <b>Pratt precedence climbing</b> — a single binding-power table replaces N nested functions</li>
+            <li><code>*</code> binds tighter than <code>+</code>, so <code>4 * 2</code> nests under <code>+</code></li>
+          </ul>
+        </div>
+        <div>
+          <h4>AST (simplified)</h4>
+          <svg viewBox="0 0 380 260" width="100%" style="font-family: 'JetBrains Mono', monospace;">
+            <defs>
+              <marker id="arr" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+                <path d="M0,0 L6,3 L0,6 z" fill="#94a3b8"/>
+              </marker>
+            </defs>
+            <g font-size="11" fill="#0f172a">
+              <rect x="130" y="10" width="120" height="34" rx="6" fill="#eef2ff" stroke="#4f46e5"/>
+              <text x="190" y="32" text-anchor="middle" font-weight="700">VarDecl x: int</text>
+
+              <line x1="190" y1="44" x2="190" y2="70" stroke="#94a3b8" marker-end="url(#arr)"/>
+
+              <rect x="140" y="76" width="100" height="34" rx="6" fill="#fff" stroke="#cbd5e1"/>
+              <text x="190" y="98" text-anchor="middle">BinOp +</text>
+
+              <line x1="170" y1="110" x2="100" y2="140" stroke="#94a3b8" marker-end="url(#arr)"/>
+              <line x1="210" y1="110" x2="280" y2="140" stroke="#94a3b8" marker-end="url(#arr)"/>
+
+              <rect x="60" y="146" width="80" height="34" rx="6" fill="#fff" stroke="#cbd5e1"/>
+              <text x="100" y="168" text-anchor="middle">Literal 3</text>
+
+              <rect x="240" y="146" width="100" height="34" rx="6" fill="#fff" stroke="#cbd5e1"/>
+              <text x="290" y="168" text-anchor="middle">BinOp *</text>
+
+              <line x1="270" y1="180" x2="240" y2="210" stroke="#94a3b8" marker-end="url(#arr)"/>
+              <line x1="310" y1="180" x2="340" y2="210" stroke="#94a3b8" marker-end="url(#arr)"/>
+
+              <rect x="200" y="216" width="80" height="34" rx="6" fill="#fff" stroke="#cbd5e1"/>
+              <text x="240" y="238" text-anchor="middle">Literal 4</text>
+              <rect x="300" y="216" width="80" height="34" rx="6" fill="#fff" stroke="#cbd5e1"/>
+              <text x="340" y="238" text-anchor="middle">Literal 2</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <aside class="notes">
+        Point at the AST. The shape encodes precedence — the multiplication is the right child of the addition because * binds tighter than +. Pratt parsing makes this almost free.
+      </aside>
+    </section>
+
+    <!-- 8. PHASE 3 SEMANTIC -->
+    <section>
+      <span class="tag">Phase 3 · Semantic Analyzer</span>
+      <h2>Does the program make sense?</h2>
+      <div class="src-out">
+        <div>
+          <h4>Broken source</h4>
+          <pre><code class="language-c">int add(int a, int b) {
+    return a + b;
+}
+
+int main() {
+    x = 5;             // undeclared
+    int y = 1;
+    int y = 2;         // redeclared
+    int z = add(1);    // wrong arity
+    print(undeclared); // unknown name
+    return 0;
+}</code></pre>
+        </div>
+        <div>
+          <h4>Errors collected in one run</h4>
+<pre style="border-left: 4px solid var(--bad);"><code class="language-text">line 6:  'x' not declared
+line 8:  'y' already declared in this scope
+line 9:  'add' expects 2 arg(s), got 1
+line 10: 'undeclared' not declared</code></pre>
+          <h3 style="margin-top: 0.7em;">Two passes</h3>
+          <ul>
+            <li><b>Pass 1:</b> register every function signature &amp; global so functions can call each other in any order</li>
+            <li><b>Pass 2:</b> check each body — types, scope, arity, return type, array indices</li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">
+        Highlight that errors are collected and printed together — not fail-fast. The user sees the whole picture in one compile.
+      </aside>
+    </section>
+
+    <!-- 9. SYMBOL TABLE / SCOPING -->
+    <section>
+      <span class="tag">Symbol Table</span>
+      <h2>How scope is managed</h2>
+      <div class="src-out">
+        <div>
+          <h4>Source</h4>
+          <pre><code class="language-c">int g = 100;          // global
+
+int main() {
+    int x = 1;        // function scope
+    {
+        int x = 2;    // shadows outer x
+        print(x);     // 2
+    }
+    print(x);         // 1
+    print(g);         // 100
+}</code></pre>
+        </div>
+        <div>
+          <h4>Scope stack at <code>print(x)</code> inner</h4>
+          <svg viewBox="0 0 380 220" width="100%" style="font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+            <g>
+              <rect x="20" y="10" width="340" height="48" rx="8" fill="#fff" stroke="#cbd5e1"/>
+              <text x="35" y="28" font-weight="700" fill="#475569">global</text>
+              <text x="35" y="48" fill="#0f172a">g: int = 100   add: func   main: func</text>
+
+              <rect x="20" y="70" width="340" height="48" rx="8" fill="#fff" stroke="#cbd5e1"/>
+              <text x="35" y="88" font-weight="700" fill="#475569">main()</text>
+              <text x="35" y="108" fill="#0f172a">x: int = 1</text>
+
+              <rect x="20" y="130" width="340" height="48" rx="8" fill="#eef2ff" stroke="#4f46e5"/>
+              <text x="35" y="148" font-weight="700" fill="#4f46e5">block (innermost · top of stack)</text>
+              <text x="35" y="168" fill="#0f172a">x: int = 2  ← lookup hits this first</text>
+
+              <text x="20" y="200" fill="#475569">lookup walks innermost → outermost</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+      <aside class="notes">
+        Explain the stack-of-dictionaries model. Lookup walks from the top (innermost) downward, which gives variable shadowing for free.
+      </aside>
+    </section>
+
+    <!-- 10. PHASE 4 TAC -->
+    <section>
+      <span class="tag">Phase 4 · IR Generation</span>
+      <h2>AST → Three-Address Code</h2>
+      <div class="src-out">
+        <div>
+          <h4>Source: recursive factorial</h4>
+          <pre><code class="language-c">int fact(int n) {
+    if (n &lt;= 1) {
+        return 1;
+    }
+    return n * fact(n - 1);
+}
+
+int main() {
+    print(fact(6));
+    return 0;
+}</code></pre>
+        </div>
+        <div>
+          <h4>Generated TAC</h4>
+<pre><code class="language-text">func_begin fact
+param n
+t1 = n &lt;= 1
+if_false t1 goto L1
+return 1
+L1:
+t2 = n - 1
+param t2
+t3 = call fact, 1
+t4 = n * t3
+return t4
+func_end fact
+
+func_begin main
+param 6
+t5 = call fact, 1
+print t5
+return 0
+func_end main</code></pre>
+        </div>
+      </div>
+      <aside class="notes">
+        Walk through the TAC line by line. Notice the standard if/goto pattern, the param/call convention, and how the recursive call is just another function call.
+      </aside>
+    </section>
+
+    <!-- 11. CONTROL FLOW LOWERING -->
+    <section>
+      <span class="tag">Control Flow</span>
+      <h2>How loops become labels &amp; jumps</h2>
+      <div class="src-out">
+        <div>
+          <h4>Source</h4>
+          <pre><code class="language-c">while (i &lt; 5) {
+    s = s + i;
+    i = i + 1;
+}</code></pre>
+          <h3 style="margin-top: 0.7em;">Pattern</h3>
+          <pre><code class="language-text">Ltop:
+  ... evaluate cond ...
+  if_false cond goto Lend
+  ... loop body ...
+  goto Ltop
+Lend:</code></pre>
+        </div>
+        <div>
+          <h4>Lowered TAC</h4>
+<pre><code class="language-text">L1:
+t1 = i &lt; 5
+if_false t1 goto L2
+t2 = s + i
+s = t2
+t3 = i + 1
+i = t3
+goto L1
+L2:</code></pre>
+          <p class="lede" style="margin-top: 0.7em;">The same pattern lowers <code>for</code> loops too — they desugar to <code>while</code> with an init statement and an update at the end of the body.</p>
+        </div>
+      </div>
+      <aside class="notes">
+        This slide demystifies "where do labels and gotos come from?" — they fall out of the standard while/if lowering pattern.
+      </aside>
+    </section>
+
+    <!-- 12. INNOVATION 1: ARRAYS -->
+    <section>
+      <span class="tag">Innovation · Arrays</span>
+      <h2>Arrays end-to-end (bubble sort)</h2>
+      <div class="src-out">
+        <div>
+          <h4>Source (excerpt)</h4>
+          <pre><code class="language-c">int a[5];
+a[0]=5; a[1]=2; a[2]=4; a[3]=1; a[4]=3;
+
+while (i &lt; 5) {
+    int j = 0;
+    while (j &lt; 4 - i) {
+        if (a[j] &gt; a[j+1]) {
+            int tmp = a[j];
+            a[j] = a[j+1];
+            a[j+1] = tmp;
+        }
+        j = j + 1;
+    }
+    i = i + 1;
+}</code></pre>
+        </div>
+        <div>
+          <h4>TAC for the swap</h4>
+<pre><code class="language-text">t8  = a[j]
+tmp = t8
+t9  = j + 1
+t10 = a[t9]
+a[j] = t10
+t11 = j + 1
+a[t11] = tmp</code></pre>
+          <h3 style="margin-top: 0.7em;">Two new instructions</h3>
+          <div class="pill-row">
+            <span class="pill">array_load: t = a[i]</span>
+            <span class="pill">array_store: a[i] = v</span>
+          </div>
+          <p class="lede" style="margin-top: 0.7em;">The semantic analyzer enforces that the index is <code>int</code> and the name is actually an array.</p>
+        </div>
+      </div>
+      <aside class="notes">
+        Show that arrays touch every phase: lexer ([ ]), parser (ArrayDecl/ArrayAccess/ArrayAssign), semantic checks, and two new TAC ops.
+      </aside>
+    </section>
+
+    <!-- 13. INNOVATION 2A: CONSTANT FOLDING -->
+    <section>
+      <span class="tag">Innovation · Optimizer</span>
+      <h2>Constant folding (compile-time evaluation)</h2>
+      <p class="lede">If both operands of a binary op are literals, evaluate them at compile time and replace the subtree with a single literal.</p>
+      <div class="src-out">
+        <div>
+          <h4>Source</h4>
+          <pre><code class="language-c">int a = 2 + 3 * 4;
+int b = (10 - 4) / 2;
+int c = a + b;</code></pre>
+        </div>
+        <div>
+          <h4 style="color: var(--bad);">Without optimization</h4>
+<pre><code class="language-text">t1 = 3 * 4
+t2 = 2 + t1
+a = t2
+t3 = 10 - 4
+t4 = t3 / 2
+b = t4
+t5 = a + b
+c = t5</code></pre>
+          <h4 style="color: var(--good); margin-top: 0.5em;">With optimization</h4>
+<pre><code class="language-text">a = 14
+b = 3
+t1 = a + b
+c = t1</code></pre>
+        </div>
+      </div>
+      <p class="lede" style="margin-top: 0.6em;">8 instructions → 4. Constant subtrees collapse before TAC is even generated.</p>
+      <aside class="notes">
+        Make the size difference concrete — 8 ops down to 4. The folding happens on the AST so all downstream phases benefit automatically.
+      </aside>
+    </section>
+
+    <!-- 14. INNOVATION 2B: DCE -->
+    <section>
+      <span class="tag">Innovation · Optimizer</span>
+      <h2>Dead code elimination (unreachable code)</h2>
+      <p class="lede">After a <code>return</code> or <code>goto</code>, no instruction can run until the next reachable label. We drop everything in between, then drop labels nobody jumps to.</p>
+      <div class="src-out">
+        <div>
+          <h4>Source</h4>
+          <pre><code class="language-c">int main() {
+    int x = 5;
+    return x;
+    int y = 10;     // unreachable
+    print(y);       // unreachable
+    return 0;       // unreachable
+}</code></pre>
+        </div>
+        <div>
+          <h4 style="color: var(--bad);">Without optimization</h4>
+<pre><code class="language-text">func_begin main
+x = 5
+return x
+y = 10
+print y
+return 0
+func_end main</code></pre>
+          <h4 style="color: var(--good); margin-top: 0.5em;">With optimization</h4>
+<pre><code class="language-text">func_begin main
+x = 5
+return x
+func_end main</code></pre>
+        </div>
+      </div>
+      <aside class="notes">
+        Two passes: collect all label targets, then sweep the code dropping unreachable instructions and unreferenced labels.
+      </aside>
+    </section>
+
+    <!-- 15. TEST RESULTS -->
+    <section>
+      <span class="tag">Quality</span>
+      <h2>Automated test suite</h2>
+      <div class="stat-row">
+        <div class="stat"><span class="num">11</span><span class="lbl">programs</span></div>
+        <div class="stat"><span class="num">11</span><span class="lbl">passing</span></div>
+        <div class="stat"><span class="num">10</span><span class="lbl">golden TAC diffs</span></div>
+        <div class="stat"><span class="num">1</span><span class="lbl">negative test</span></div>
+      </div>
+      <div class="checks">
+        <div class="check">arithmetic</div>
+        <div class="check">if_else</div>
+        <div class="check">while_loop</div>
+        <div class="check">for_loop</div>
+        <div class="check">functions</div>
+        <div class="check">recursion_factorial</div>
+        <div class="check">scoping</div>
+        <div class="check">arrays_bubblesort</div>
+        <div class="check">constant_folding</div>
+        <div class="check">dead_code</div>
+        <div class="check">errors_semantic</div>
+      </div>
+      <h3 style="margin-top: 0.6em;">How it works</h3>
+      <ul>
+        <li><code>tests/run_tests.py</code> compiles each program and diffs the TAC against <code>tests/expected/*.tac</code></li>
+        <li>For the broken program, it asserts the compiler exits with semantic errors</li>
+        <li>Exit code is non-zero on any failure — easy to wire into CI</li>
+      </ul>
+      <aside class="notes">
+        Show this slide as evidence of correctness. Mention that adding a new test is just dropping a .c file plus its expected .tac into the right folders.
+      </aside>
+    </section>
+
+    <!-- 16. LIMITATIONS -->
+    <section>
+      <span class="tag">Honest scope</span>
+      <h2>Limitations &amp; future work</h2>
+      <div class="grid-2">
+        <div class="card" style="border-color: var(--warn);">
+          <h4 style="color: var(--warn);">Out of scope today</h4>
+          <ul>
+            <li>Pointers, <code>&amp;</code> and <code>*</code></li>
+            <li>Strings, structs, enums, typedef</li>
+            <li><code>switch</code>, <code>break</code>, <code>continue</code>, <code>goto</code></li>
+            <li>Preprocessor &amp; standard library headers</li>
+            <li>Native code generation — we stop at TAC</li>
+          </ul>
+        </div>
+        <div class="card" style="border-color: var(--accent);">
+          <h4>Natural next steps</h4>
+          <ul>
+            <li>Lower TAC to LLVM IR or x86-64 to produce executables</li>
+            <li>Add <code>break</code> / <code>continue</code> for loops</li>
+            <li>Common-subexpression elimination &amp; copy propagation</li>
+            <li>A small register allocator after instruction selection</li>
+          </ul>
+        </div>
+      </div>
+      <aside class="notes">
+        Be upfront about scope. The deadline drove these choices. Future work shows where the project would go next.
+      </aside>
+    </section>
+
+    <!-- 17. DEMO -->
+    <section>
+      <span class="tag">Demo</span>
+      <h2>Live commands for the demo</h2>
+<pre><code class="language-bash"># See tokens
+python main.py tests/programs/arithmetic.c --phase tokens
+
+# See the AST
+python main.py tests/programs/recursion_factorial.c --phase ast
+
+# Trigger semantic errors
+python main.py tests/programs/errors_semantic.c --phase semantic
+
+# Generate TAC (default phase)
+python main.py tests/programs/arrays_bubblesort.c
+
+# Compare with and without optimisation
+python main.py tests/programs/constant_folding.c --phase tac --no-opt
+python main.py tests/programs/constant_folding.c --phase tac
+
+# Run the whole suite
+python tests/run_tests.py</code></pre>
+      <aside class="notes">
+        Run these in order during the demo. Each one shows one phase or one feature. Total demo time about 3-4 minutes.
+      </aside>
+    </section>
+
+    <!-- 18. THANK YOU -->
+    <section class="title-slide">
+      <h1>Questions?</h1>
+      <p class="lede">Code, tests, and report on GitHub.</p>
+      <p style="margin-top: 1.5em; font-family: 'JetBrains Mono', monospace; font-size: 0.7em; color: var(--accent);">
+        github.com/okHadi/compiler-construction
+      </p>
+      <aside class="notes">
+        Keep this minimal. Invite questions about any phase, the optimizer, or the test methodology.
+      </aside>
+    </section>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/highlight/highlight.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    transition: 'fade',
+    transitionSpeed: 'fast',
+    width: 1280,
+    height: 800,
+    margin: 0.06,
+    plugins: [RevealHighlight, RevealNotes],
+  });
+</script>
+</body>
+</html>
