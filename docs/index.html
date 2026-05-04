@@ -28,16 +28,16 @@
       font-family: 'Inter', sans-serif; font-weight: 700; color: var(--ink);
       text-transform: none; letter-spacing: -0.02em; line-height: 1.15;
     }
-    .reveal h1 { font-size: 2.4em; }
-    .reveal h2 { font-size: 1.7em; margin-bottom: 0.5em; }
-    .reveal h3 { font-size: 1.15em; color: var(--accent); margin-bottom: 0.4em; }
-    .reveal p, .reveal li { color: var(--ink); font-size: 0.7em; line-height: 1.5; }
-    .reveal small { color: var(--muted); font-size: 0.55em; }
+    .reveal h1 { font-size: 1.6em; }
+    .reveal h2 { font-size: 1.1em; margin-bottom: 0.45em; }
+    .reveal h3 { font-size: 0.78em; color: var(--accent); margin-bottom: 0.3em; }
+    .reveal p, .reveal li { color: var(--ink); font-size: 0.55em; line-height: 1.45; }
+    .reveal small { color: var(--muted); font-size: 0.45em; }
     .reveal code { font-family: 'JetBrains Mono', monospace; }
-    .reveal pre { box-shadow: none; font-size: 0.42em; line-height: 1.45; }
+    .reveal pre { box-shadow: none; font-size: 0.38em; line-height: 1.4; }
     .reveal pre code {
-      border-radius: 8px; padding: 1em 1.2em; background: var(--code-bg);
-      max-height: 480px;
+      border-radius: 8px; padding: 0.85em 1em; background: var(--code-bg);
+      max-height: 440px;
     }
     .reveal section img { border: 0; box-shadow: none; }
     .reveal a { color: var(--accent); }
@@ -45,20 +45,20 @@
     .tag {
       display: inline-block; padding: 0.18em 0.7em; border-radius: 999px;
       background: var(--accent-soft); color: var(--accent);
-      font-size: 0.5em; font-weight: 600; letter-spacing: 0.05em;
-      text-transform: uppercase;
+      font-size: 0.4em; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase; margin-bottom: 0.35em;
     }
-    .lede { color: var(--muted); font-size: 0.8em; }
+    .lede { color: var(--muted); font-size: 0.6em; line-height: 1.45; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5em; align-items: start; }
     .grid-4 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 1em; }
     .card {
       border: 1px solid var(--line); border-radius: 10px; padding: 1em 1.2em; background: white;
     }
     .card h4 {
-      margin: 0 0 0.4em 0; font-size: 0.7em; color: var(--accent); text-transform: uppercase;
+      margin: 0 0 0.4em 0; font-size: 0.55em; color: var(--accent); text-transform: uppercase;
       letter-spacing: 0.06em; font-weight: 700;
     }
-    .card p, .card li { font-size: 0.6em; margin: 0.15em 0; }
+    .card p, .card li { font-size: 0.5em; margin: 0.15em 0; }
     .card code { font-size: 0.85em; color: var(--ink); background: var(--accent-soft);
                  padding: 0.05em 0.35em; border-radius: 4px; }
 
@@ -66,31 +66,31 @@
     .pill {
       display: inline-block; padding: 0.25em 0.7em; border-radius: 6px;
       background: var(--accent-soft); color: var(--accent); font-family: 'JetBrains Mono', monospace;
-      font-size: 0.55em; font-weight: 500;
+      font-size: 0.45em; font-weight: 500;
     }
 
     .title-slide { text-align: center; }
     .title-slide h1 {
-      font-size: 3em; background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      font-size: 2.2em; background: linear-gradient(135deg, #4f46e5, #06b6d4);
       -webkit-background-clip: text; background-clip: text; color: transparent;
       margin-bottom: 0.2em;
     }
-    .title-slide .lede { font-size: 1em; }
+    .title-slide .lede { font-size: 0.7em; }
 
-    .meta-row { display: flex; gap: 2em; justify-content: center; margin-top: 1.5em; color: var(--muted); font-size: 0.6em;}
+    .meta-row { display: flex; gap: 2em; justify-content: center; margin-top: 1.2em; color: var(--muted); font-size: 0.5em;}
     .meta-row b { color: var(--ink); }
 
     .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1em; margin: 1em 0; }
     .stat {
       border: 1px solid var(--line); border-radius: 10px; padding: 0.8em 1em; background: white;
     }
-    .stat .num { font-size: 1.6em; font-weight: 700; color: var(--accent); display: block; line-height: 1; }
-    .stat .lbl { font-size: 0.55em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+    .stat .num { font-size: 1.3em; font-weight: 700; color: var(--accent); display: block; line-height: 1; }
+    .stat .lbl { font-size: 0.45em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
 
     .checks { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5em; margin: 0.8em 0; }
     .check {
-      display: flex; align-items: center; gap: 0.5em; padding: 0.45em 0.7em;
-      border-radius: 8px; background: #ecfdf5; color: #065f46; font-size: 0.55em; font-weight: 500;
+      display: flex; align-items: center; gap: 0.5em; padding: 0.4em 0.65em;
+      border-radius: 8px; background: #ecfdf5; color: #065f46; font-size: 0.45em; font-weight: 500;
       font-family: 'JetBrains Mono', monospace;
     }
     .check::before { content: "✓"; font-weight: 700; }
@@ -105,20 +105,20 @@
       flex: 1; min-width: 130px; padding: 0.8em 0.6em; border-radius: 10px; border: 1px solid var(--line);
       background: white; text-align: center;
     }
-    .pipe-box .ph { font-size: 0.55em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .pipe-box .nm { font-size: 0.75em; font-weight: 700; color: var(--ink); margin: 0.1em 0; }
-    .pipe-box .out { font-size: 0.55em; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+    .pipe-box .ph { font-size: 0.45em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .pipe-box .nm { font-size: 0.6em; font-weight: 700; color: var(--ink); margin: 0.1em 0; }
+    .pipe-box .out { font-size: 0.45em; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
     .pipe-arrow { color: var(--muted); font-size: 1.2em; }
     .pipe-box.opt { border-style: dashed; border-color: var(--accent); background: var(--accent-soft); }
 
     .ascii-tree {
-      font-family: 'JetBrains Mono', monospace; font-size: 0.55em; line-height: 1.45;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.45em; line-height: 1.45;
       background: #f8fafc; border: 1px solid var(--line); border-radius: 8px;
       padding: 0.8em 1em; color: var(--ink); white-space: pre;
     }
 
     .src-out { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8em; }
-    .src-out h4 { margin: 0 0 0.3em 0; font-size: 0.6em; color: var(--muted);
+    .src-out h4 { margin: 0 0 0.25em 0; font-size: 0.5em; color: var(--muted);
       text-transform: uppercase; letter-spacing: 0.06em; }
     .reveal .src-out pre code { max-height: 380px; }
 
